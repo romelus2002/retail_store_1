@@ -114,6 +114,12 @@
 				}
 			}
 		],
+		"parameters": {
+			"tablename": {
+				"type": "string",
+				"defaultValue": "@dataset().fileName"
+			}
+		},
 		"annotations": []
 	}
 }
