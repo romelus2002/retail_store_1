@@ -114,12 +114,6 @@
 				}
 			}
 		],
-		"parameters": {
-			"tableName": {
-				"type": "String",
-				"defaultValue": "@dataset().tableName"
-			}
-		},
 		"annotations": []
 	}
 }
