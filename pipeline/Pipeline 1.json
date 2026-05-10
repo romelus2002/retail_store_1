@@ -24,7 +24,10 @@
 					},
 					"dataset": {
 						"referenceName": "AzureSqlparam",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"tableName": "tableName"
+						}
 					}
 				}
 			},
@@ -94,7 +97,10 @@
 							"inputs": [
 								{
 									"referenceName": "AzureSqlparam",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"tableName": "tableName"
+									}
 								}
 							],
 							"outputs": [
