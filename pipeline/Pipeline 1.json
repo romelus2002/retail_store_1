@@ -28,7 +28,8 @@
 						"parameters": {
 							"tableName": "tableName"
 						}
-					}
+					},
+					"firstRowOnly": false
 				}
 			},
 			{
@@ -166,11 +167,6 @@
 				}
 			}
 		],
-		"parameters": {
-			"@dataset().fileName": {
-				"type": "string"
-			}
-		},
 		"annotations": []
 	}
 }
