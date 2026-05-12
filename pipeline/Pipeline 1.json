@@ -143,6 +143,9 @@
 					"secureInput": false
 				},
 				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/superromelus@gmail.com/project1/databrick_notebook/SalesLT_cleaning_validation/data_cleaning_validation"
+				},
 				"linkedServiceName": {
 					"referenceName": "AzureDatabricks1",
 					"type": "LinkedServiceReference"
