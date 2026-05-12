@@ -125,8 +125,8 @@
 				}
 			},
 			{
-				"name": "transforme",
-				"type": "SynapseNotebook",
+				"name": "transform",
+				"type": "DatabricksNotebook",
 				"dependsOn": [
 					{
 						"activity": "ForEach1",
@@ -143,27 +143,9 @@
 					"secureInput": false
 				},
 				"userProperties": [],
-				"typeProperties": {
-					"notebook": {
-						"referenceName": "transformation_notebook",
-						"type": "NotebookReference"
-					},
-					"snapshot": true,
-					"sparkPool": {
-						"referenceName": "sparkcluster1",
-						"type": "BigDataPoolReference"
-					},
-					"executorSize": "Small",
-					"conf": {
-						"spark.dynamicAllocation.enabled": true,
-						"spark.dynamicAllocation.minExecutors": 3,
-						"spark.dynamicAllocation.maxExecutors": 10
-					},
-					"driverSize": "Small",
-					"numExecutors": 3,
-					"authentication": {
-						"type": "MSI"
-					}
+				"linkedServiceName": {
+					"referenceName": "AzureDatabricks1",
+					"type": "LinkedServiceReference"
 				}
 			}
 		],
