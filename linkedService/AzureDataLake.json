@@ -1,0 +1,11 @@
+{
+	"name": "AzureDataLake",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://storageproject12026.dfs.core.windows.net/"
+		}
+	}
+}
