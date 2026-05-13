@@ -1,0 +1,39 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"value": "synapasedevworkspace1"
+		},
+		"AzureDatabricks1_accessToken": {
+			"value": ""
+		},
+		"AzureDataparam1_accountKey": {
+			"value": ""
+		},
+		"synapasedevworkspace1-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:synapasedevworkspace1.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"AzureDataLake_properties_typeProperties_url": {
+			"value": "https://storageproject12026.dfs.core.windows.net/"
+		},
+		"AzureDataparam_properties_typeProperties_url": {
+			"value": "https://storageproject12026.dfs.core.windows.net/"
+		},
+		"AzureDataparam1_properties_typeProperties_url": {
+			"value": "https://storageproject12026.dfs.core.windows.net/"
+		},
+		"AzureKeyVault1_properties_typeProperties_baseUrl": {
+			"value": "https://romikeyvault.vault.azure.net/"
+		},
+		"AzureKeyVault2_properties_typeProperties_baseUrl": {
+			"value": "https://romikeyvault.vault.azure.net/"
+		},
+		"azuresqlparam_properties_typeProperties_connectionString_secretName": {
+			"value": "connectionstring"
+		},
+		"synapasedevworkspace1-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://storageproject12026.dfs.core.windows.net"
+		}
+	}
+}
