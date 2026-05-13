@@ -1,5 +1,5 @@
 {
-	"name": "AzureSqlparam",
+	"name": "azuresqlparam",
 	"properties": {
 		"parameters": {
 			"tableName": {
