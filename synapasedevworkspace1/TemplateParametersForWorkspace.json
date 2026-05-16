@@ -34,6 +34,9 @@
 		},
 		"synapasedevworkspace1-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"value": "https://storageproject12026.dfs.core.windows.net"
+		},
+		"even_landing-updload_properties_typeProperties_scope": {
+			"value": "/subscriptions/e115460d-c917-470c-b79a-0769ee653dba/resourceGroups/project1/providers/Microsoft.Storage/storageAccounts/storageproject12026"
 		}
 	}
 }

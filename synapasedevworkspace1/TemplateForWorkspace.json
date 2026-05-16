@@ -47,6 +47,10 @@
 		"synapasedevworkspace1-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://storageproject12026.dfs.core.windows.net"
+		},
+		"even_landing-updload_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e115460d-c917-470c-b79a-0769ee653dba/resourceGroups/project1/providers/Microsoft.Storage/storageAccounts/storageproject12026"
 		}
 	},
 	"variables": {
@@ -76,7 +80,6 @@
 								"referenceName": "landing",
 								"type": "DatasetReference",
 								"parameters": {
-									"p_file_name": "@item().name",
 									"p_folder": "sales"
 								}
 							},
@@ -140,6 +143,11 @@
 														"storeSettings": {
 															"type": "AzureBlobFSReadSettings",
 															"recursive": true,
+															"wildcardFolderPath": "sales",
+															"wildcardFileName": {
+																"value": "@item().name",
+																"type": "Expression"
+															},
 															"enablePartitionDiscovery": false
 														},
 														"formatSettings": {
@@ -170,7 +178,7 @@
 														"referenceName": "landing",
 														"type": "DatasetReference",
 														"parameters": {
-															"p_file_name": "*"
+															"p_folder": "sales"
 														}
 													}
 												],
@@ -244,13 +252,8 @@
 					"type": "LinkedServiceReference"
 				},
 				"parameters": {
-					"p_file_name": {
-						"type": "string",
-						"defaultValue": "@item().name"
-					},
 					"p_folder": {
-						"type": "string",
-						"defaultValue": "sales"
+						"type": "string"
 					}
 				},
 				"annotations": [],
@@ -258,10 +261,6 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().p_file_name",
-							"type": "Expression"
-						},
 						"folderPath": {
 							"value": "@dataset().p_folder",
 							"type": "Expression"
@@ -491,6 +490,37 @@
 				"type": "SqlQuery"
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/even_landing-updload')]",
+			"type": "Microsoft.Synapse/workspaces/triggers",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "Pipeline 1",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/landing/blobs/",
+					"blobPathEndsWith": ".csv",
+					"ignoreEmptyBlobs": true,
+					"scope": "[parameters('even_landing-updload_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/Pipeline 1')]"
+			]
 		}
 	]
 }
