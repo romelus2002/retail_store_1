@@ -1,13 +1,6 @@
 {
 	"name": "azuresqlparam",
-	"type": "Microsoft.Synapse/workspaces/linkedservices",
 	"properties": {
-		"parameters": {
-			"tableName": {
-				"type": "string",
-				"defaultValue": "@dataset().tableName"
-			}
-		},
 		"annotations": [],
 		"type": "AzureSqlDatabase",
 		"typeProperties": {
@@ -20,5 +13,6 @@
 				"secretName": "connectionstring"
 			}
 		}
-	}
+	},
+	"type": "Microsoft.Synapse/workspaces/linkedservices"
 }
