@@ -3,8 +3,8 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Lookup1",
-				"type": "Lookup",
+				"name": "Get Metadata1",
+				"type": "GetMetadata",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -15,21 +15,24 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"source": {
-						"type": "AzureSqlSource",
-						"sqlReaderQuery": "SELECT\n    s.name AS SchemaName,\n    t.name AS TableName\nFROM sys.tables t\nINNER JOIN sys.schemas s\n    ON t.schema_id = s.schema_id\nWHERE s.name = 'SalesLT';",
-						"queryTimeout": "02:00:00",
-						"isolationLevel": "ReadCommitted",
-						"partitionOption": "None"
-					},
 					"dataset": {
-						"referenceName": "AzureSqlparam",
+						"referenceName": "landing",
 						"type": "DatasetReference",
 						"parameters": {
-							"tableName": "tableName"
+							"p_folder": "sales"
 						}
 					},
-					"firstRowOnly": false
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
 				}
 			},
 			{
@@ -37,7 +40,7 @@
 				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "Lookup1",
+						"activity": "Get Metadata1",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -46,109 +49,95 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('Lookup1').output.value",
+						"value": "@activity('Get Metadata1').output.childItems",
 						"type": "Expression"
 					},
-					"isSequential": false,
 					"activities": [
 						{
-							"name": "Copy data1",
-							"type": "Copy",
+							"name": "If Condition1",
+							"type": "IfCondition",
 							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
 							"userProperties": [],
 							"typeProperties": {
-								"source": {
-									"type": "AzureSqlSource",
-									"sqlReaderQuery": {
-										"value": "@concat('SELECT * FROM ', item().SchemaName, '.', item().TableName)",
-										"type": "Expression"
-									},
-									"queryTimeout": "02:00:00",
-									"partitionOption": "None"
+								"expression": {
+									"value": "@endswith(item().name,'.csv')",
+									"type": "Expression"
 								},
-								"sink": {
-									"type": "ParquetSink",
-									"storeSettings": {
-										"type": "AzureBlobFSWriteSettings",
-										"maxConcurrentConnections": 2,
-										"copyBehavior": "PreserveHierarchy",
-										"blockSizeInMB": 100
-									},
-									"formatSettings": {
-										"type": "ParquetWriteSettings"
-									}
-								},
-								"enableStaging": false,
-								"translator": {
-									"type": "TabularTranslator",
-									"typeConversion": true,
-									"typeConversionSettings": {
-										"allowDataTruncation": true,
-										"treatBooleanAsNumber": false
-									}
-								}
-							},
-							"inputs": [
-								{
-									"referenceName": "AzureSqlparam",
-									"type": "DatasetReference",
-									"parameters": {
-										"tableName": "tableName"
-									}
-								}
-							],
-							"outputs": [
-								{
-									"referenceName": "Parquet1",
-									"type": "DatasetReference",
-									"parameters": {
-										"schemaname": {
-											"value": "@item().SchemaName",
-											"type": "Expression"
+								"ifTrueActivities": [
+									{
+										"name": "Copy data1",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
 										},
-										"tablename": {
-											"value": "@item().TableName",
-											"type": "Expression"
-										}
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "AzureBlobFSReadSettings",
+													"recursive": true,
+													"wildcardFolderPath": "sales",
+													"wildcardFileName": {
+														"value": "@item().name",
+														"type": "Expression"
+													},
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "ParquetSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "ParquetWriteSettings"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "landing",
+												"type": "DatasetReference",
+												"parameters": {
+													"p_folder": "sales"
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "Parquet1",
+												"type": "DatasetReference",
+												"parameters": {
+													"par_file_name": {
+														"value": "@item().name",
+														"type": "Expression"
+													}
+												}
+											}
+										]
 									}
-								}
-							]
+								]
+							}
 						}
 					]
-				}
-			},
-			{
-				"name": "transform",
-				"type": "DatabricksNotebook",
-				"dependsOn": [
-					{
-						"activity": "ForEach1",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"notebookPath": "/Users/superromelus@gmail.com/project1/databrick_notebook/SalesLT_cleaning_validation/data_cleaning_validation"
-				},
-				"linkedServiceName": {
-					"referenceName": "AzureDatabricks1",
-					"type": "LinkedServiceReference"
 				}
 			}
 		],

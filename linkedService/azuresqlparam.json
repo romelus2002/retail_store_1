@@ -1,13 +1,20 @@
 {
-	"name": "AzureSqlDatabase1",
+	"name": "azuresqlparam",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
 	"properties": {
+		"parameters": {
+			"tableName": {
+				"type": "string",
+				"defaultValue": "@dataset().tableName"
+			}
+		},
 		"annotations": [],
 		"type": "AzureSqlDatabase",
 		"typeProperties": {
 			"connectionString": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
-					"referenceName": "AzureKeyVault2",
+					"referenceName": "AzureKeyVault1",
 					"type": "LinkedServiceReference"
 				},
 				"secretName": "connectionstring"

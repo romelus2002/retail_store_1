@@ -1,24 +1,30 @@
 {
-	"name": "Parquet1",
+	"name": "landing",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureDataLake",
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {
-			"par_file_name": {
+			"p_folder": {
 				"type": "string"
 			}
 		},
 		"annotations": [],
-		"type": "Parquet",
+		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"folderPath": "sales_parquet",
-				"fileSystem": "loaded"
+				"folderPath": {
+					"value": "@dataset().p_folder",
+					"type": "Expression"
+				},
+				"fileSystem": "landing"
 			},
-			"compressionCodec": "snappy"
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": false,
+			"quoteChar": "\""
 		},
 		"schema": []
 	}
