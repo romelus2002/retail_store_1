@@ -17,13 +17,17 @@
 				"typeProperties": {
 					"dataset": {
 						"referenceName": "landing",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"p_folder": "sales"
+						}
 					},
 					"fieldList": [
 						"childItems"
 					],
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
 						"enablePartitionDiscovery": false
 					},
 					"formatSettings": {
@@ -78,6 +82,11 @@
 												"storeSettings": {
 													"type": "AzureBlobFSReadSettings",
 													"recursive": true,
+													"wildcardFolderPath": "sales",
+													"wildcardFileName": {
+														"value": "@item().name",
+														"type": "Expression"
+													},
 													"enablePartitionDiscovery": false
 												},
 												"formatSettings": {
@@ -108,7 +117,7 @@
 												"referenceName": "landing",
 												"type": "DatasetReference",
 												"parameters": {
-													"p_file_name": "*"
+													"p_folder": "sales"
 												}
 											}
 										],

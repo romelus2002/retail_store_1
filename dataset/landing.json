@@ -6,13 +6,8 @@
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {
-			"p_file_name": {
-				"type": "string",
-				"defaultValue": "@item().name"
-			},
 			"p_folder": {
-				"type": "string",
-				"defaultValue": "sales"
+				"type": "string"
 			}
 		},
 		"annotations": [],
@@ -20,10 +15,6 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": {
-					"value": "@dataset().p_file_name",
-					"type": "Expression"
-				},
 				"folderPath": {
 					"value": "@dataset().p_folder",
 					"type": "Expression"
