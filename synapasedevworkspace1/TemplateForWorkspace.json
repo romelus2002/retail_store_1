@@ -213,6 +213,154 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/Pipeline 2')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup1",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT \ns.name  as SchemaName,\nt.Name as TableName \nFROM sys.tables t\nJOIN sys.schemas s\nON t.schema_id = s.schema_id \nWHERE s.name = 'SalesLT'",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlTable1",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup1').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy data1",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "@{concat('SELECT * FROM ', item().SchemaName, '.', item().TableName)}",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "AzureSqlTable1",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "Parquet2",
+											"type": "DatasetReference",
+											"parameters": {
+												"schemaname": {
+													"value": "@item().SchemaName",
+													"type": "Expression"
+												},
+												"tablename": {
+													"value": "@item().TableName",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/AzureSqlTable1')]",
+				"[concat(variables('workspaceId'), '/datasets/Parquet2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureSqlTable1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "azuresqlparam",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/azuresqlparam')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/Parquet1')]",
 			"type": "Microsoft.Synapse/workspaces/datasets",
 			"apiVersion": "2019-06-01-preview",
@@ -233,6 +381,43 @@
 						"type": "AzureBlobFSLocation",
 						"folderPath": "sales_parquet",
 						"fileSystem": "loaded"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureDataLake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Parquet2')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLake",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"schemaname": {
+						"type": "string"
+					},
+					"tablename": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@{concat(dataset().tablename, '.parquet')}",
+							"type": "Expression"
+						},
+						"folderPath": "SalesLT",
+						"fileSystem": "bronze"
 					},
 					"compressionCodec": "snappy"
 				},
@@ -376,12 +561,6 @@
 			"type": "Microsoft.Synapse/workspaces/linkedServices",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
-				"parameters": {
-					"tableName": {
-						"type": "string",
-						"defaultValue": "@dataset().tableName"
-					}
-				},
 				"annotations": [],
 				"type": "AzureSqlDatabase",
 				"typeProperties": {
@@ -443,6 +622,37 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/even_landing-updload')]",
+			"type": "Microsoft.Synapse/workspaces/triggers",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "Pipeline 1",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/landing/blobs/",
+					"blobPathEndsWith": ".csv",
+					"ignoreEmptyBlobs": true,
+					"scope": "[parameters('even_landing-updload_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/Pipeline 1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
 			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
 			"apiVersion": "2019-06-01-preview",
@@ -490,37 +700,6 @@
 				"type": "SqlQuery"
 			},
 			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/even_landing-updload')]",
-			"type": "Microsoft.Synapse/workspaces/triggers",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "Pipeline 1",
-							"type": "PipelineReference"
-						},
-						"parameters": {}
-					}
-				],
-				"type": "BlobEventsTrigger",
-				"typeProperties": {
-					"blobPathBeginsWith": "/landing/blobs/",
-					"blobPathEndsWith": ".csv",
-					"ignoreEmptyBlobs": true,
-					"scope": "[parameters('even_landing-updload_properties_typeProperties_scope')]",
-					"events": [
-						"Microsoft.Storage.BlobCreated"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/pipelines/Pipeline 1')]"
-			]
 		}
 	]
 }
