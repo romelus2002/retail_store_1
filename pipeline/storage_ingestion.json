@@ -1,5 +1,5 @@
 {
-	"name": "Pipeline 1",
+	"name": "storage_ingestion",
 	"properties": {
 		"activities": [
 			{
@@ -19,7 +19,7 @@
 						"referenceName": "landing",
 						"type": "DatasetReference",
 						"parameters": {
-							"p_folder": "sales"
+							"p_file_name": "*"
 						}
 					},
 					"fieldList": [
@@ -82,11 +82,6 @@
 												"storeSettings": {
 													"type": "AzureBlobFSReadSettings",
 													"recursive": true,
-													"wildcardFolderPath": "sales",
-													"wildcardFileName": {
-														"value": "@item().name",
-														"type": "Expression"
-													},
 													"enablePartitionDiscovery": false
 												},
 												"formatSettings": {
@@ -94,12 +89,15 @@
 												}
 											},
 											"sink": {
-												"type": "ParquetSink",
+												"type": "DelimitedTextSink",
 												"storeSettings": {
-													"type": "AzureBlobFSWriteSettings"
+													"type": "AzureBlobFSWriteSettings",
+													"copyBehavior": "PreserveHierarchy"
 												},
 												"formatSettings": {
-													"type": "ParquetWriteSettings"
+													"type": "DelimitedTextWriteSettings",
+													"quoteAllText": true,
+													"fileExtension": ".txt"
 												}
 											},
 											"enableStaging": false,
@@ -117,16 +115,19 @@
 												"referenceName": "landing",
 												"type": "DatasetReference",
 												"parameters": {
-													"p_folder": "sales"
+													"p_file_name": {
+														"value": "@item().name",
+														"type": "Expression"
+													}
 												}
 											}
 										],
 										"outputs": [
 											{
-												"referenceName": "Parquet1",
+												"referenceName": "DelimitedText1",
 												"type": "DatasetReference",
 												"parameters": {
-													"par_file_name": {
+													"p_file_name": {
 														"value": "@item().name",
 														"type": "Expression"
 													}

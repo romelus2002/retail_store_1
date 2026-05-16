@@ -1,5 +1,5 @@
 {
-	"name": "Pipeline 2",
+	"name": "Azuresqlingestion",
 	"properties": {
 		"activities": [
 			{
@@ -71,7 +71,8 @@
 								"sink": {
 									"type": "ParquetSink",
 									"storeSettings": {
-										"type": "AzureBlobFSWriteSettings"
+										"type": "AzureBlobFSWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
 									},
 									"formatSettings": {
 										"type": "ParquetWriteSettings"
@@ -95,7 +96,7 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "Parquet2",
+									"referenceName": "Parquet1",
 									"type": "DatasetReference",
 									"parameters": {
 										"schemaname": {
