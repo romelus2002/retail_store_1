@@ -14,6 +14,9 @@
 		"synapasedevworkspace1-WorkspaceDefaultSqlServer_connectionString": {
 			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:synapasedevworkspace1.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
 		},
+		"AzureDataLakeStorage1_accountKey": {
+			"value": ""
+		},
 		"AzureDataLake_properties_typeProperties_url": {
 			"value": "https://storageproject12026.dfs.core.windows.net/"
 		},
@@ -37,6 +40,9 @@
 		},
 		"even_landing-updload_properties_typeProperties_scope": {
 			"value": "/subscriptions/e115460d-c917-470c-b79a-0769ee653dba/resourceGroups/project1/providers/Microsoft.Storage/storageAccounts/storageproject12026"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"value": "https://storageproject12026.dfs.core.windows.net/"
 		}
 	}
 }

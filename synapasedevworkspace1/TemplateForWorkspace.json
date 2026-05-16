@@ -20,6 +20,10 @@
 			"metadata": "Secure string for 'connectionString' of 'synapasedevworkspace1-WorkspaceDefaultSqlServer'",
 			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:synapasedevworkspace1.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
 		},
+		"AzureDataLakeStorage1_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStorage1'"
+		},
 		"AzureDataLake_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://storageproject12026.dfs.core.windows.net/"
@@ -51,6 +55,10 @@
 		"even_landing-updload_properties_typeProperties_scope": {
 			"type": "string",
 			"defaultValue": "/subscriptions/e115460d-c917-470c-b79a-0769ee653dba/resourceGroups/project1/providers/Microsoft.Storage/storageAccounts/storageproject12026"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://storageproject12026.dfs.core.windows.net/"
 		}
 	},
 	"variables": {
@@ -58,7 +66,7 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('workspaceName'), '/Pipeline 1')]",
+			"name": "[concat(parameters('workspaceName'), '/storage_ingestion')]",
 			"type": "Microsoft.Synapse/workspaces/pipelines",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
@@ -80,7 +88,7 @@
 								"referenceName": "landing",
 								"type": "DatasetReference",
 								"parameters": {
-									"p_folder": "sales"
+									"p_file_name": "*"
 								}
 							},
 							"fieldList": [
@@ -143,11 +151,6 @@
 														"storeSettings": {
 															"type": "AzureBlobFSReadSettings",
 															"recursive": true,
-															"wildcardFolderPath": "sales",
-															"wildcardFileName": {
-																"value": "@item().name",
-																"type": "Expression"
-															},
 															"enablePartitionDiscovery": false
 														},
 														"formatSettings": {
@@ -155,12 +158,15 @@
 														}
 													},
 													"sink": {
-														"type": "ParquetSink",
+														"type": "DelimitedTextSink",
 														"storeSettings": {
-															"type": "AzureBlobFSWriteSettings"
+															"type": "AzureBlobFSWriteSettings",
+															"copyBehavior": "PreserveHierarchy"
 														},
 														"formatSettings": {
-															"type": "ParquetWriteSettings"
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
 														}
 													},
 													"enableStaging": false,
@@ -178,16 +184,19 @@
 														"referenceName": "landing",
 														"type": "DatasetReference",
 														"parameters": {
-															"p_folder": "sales"
+															"p_file_name": {
+																"value": "@item().name",
+																"type": "Expression"
+															}
 														}
 													}
 												],
 												"outputs": [
 													{
-														"referenceName": "Parquet1",
+														"referenceName": "DelimitedText1",
 														"type": "DatasetReference",
 														"parameters": {
-															"par_file_name": {
+															"p_file_name": {
 																"value": "@item().name",
 																"type": "Expression"
 															}
@@ -209,11 +218,11 @@
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/datasets/landing')]",
-				"[concat(variables('workspaceId'), '/datasets/Parquet1')]"
+				"[concat(variables('workspaceId'), '/datasets/DelimitedText1')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/Pipeline 2')]",
+			"name": "[concat(parameters('workspaceName'), '/Azuresqlingestion')]",
 			"type": "Microsoft.Synapse/workspaces/pipelines",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
@@ -288,7 +297,8 @@
 										"sink": {
 											"type": "ParquetSink",
 											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings"
+												"type": "AzureBlobFSWriteSettings",
+												"copyBehavior": "PreserveHierarchy"
 											},
 											"formatSettings": {
 												"type": "ParquetWriteSettings"
@@ -313,7 +323,7 @@
 									],
 									"outputs": [
 										{
-											"referenceName": "Parquet2",
+											"referenceName": "Parquet1",
 											"type": "DatasetReference",
 											"parameters": {
 												"schemaname": {
@@ -339,7 +349,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/datasets/AzureSqlTable1')]",
-				"[concat(variables('workspaceId'), '/datasets/Parquet2')]"
+				"[concat(variables('workspaceId'), '/datasets/Parquet1')]"
 			]
 		},
 		{
@@ -366,11 +376,14 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "AzureDataLake",
+					"referenceName": "AzureDataLakeStorage1",
 					"type": "LinkedServiceReference"
 				},
 				"parameters": {
-					"par_file_name": {
+					"schemaname": {
+						"type": "string"
+					},
+					"tablename": {
 						"type": "string"
 					}
 				},
@@ -379,15 +392,19 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"folderPath": "sales_parquet",
-						"fileSystem": "loaded"
+						"fileName": {
+							"value": "@{concat(dataset().tablename, '.parquet')}",
+							"type": "Expression"
+						},
+						"folderPath": "SalesLT",
+						"fileSystem": "bronze"
 					},
 					"compressionCodec": "snappy"
 				},
 				"schema": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/linkedServices/AzureDataLake')]"
+				"[concat(variables('workspaceId'), '/linkedServices/AzureDataLakeStorage1')]"
 			]
 		},
 		{
@@ -437,7 +454,7 @@
 					"type": "LinkedServiceReference"
 				},
 				"parameters": {
-					"p_folder": {
+					"p_file_name": {
 						"type": "string"
 					}
 				},
@@ -446,10 +463,11 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"folderPath": {
-							"value": "@dataset().p_folder",
+						"fileName": {
+							"value": "@dataset().p_file_name",
 							"type": "Expression"
 						},
+						"folderPath": "sales",
 						"fileSystem": "landing"
 					},
 					"columnDelimiter": ",",
@@ -631,7 +649,7 @@
 				"pipelines": [
 					{
 						"pipelineReference": {
-							"referenceName": "Pipeline 1",
+							"referenceName": "storage_ingestion",
 							"type": "PipelineReference"
 						},
 						"parameters": {}
@@ -649,7 +667,7 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/pipelines/Pipeline 1')]"
+				"[concat(variables('workspaceId'), '/pipelines/storage_ingestion')]"
 			]
 		},
 		{
@@ -700,6 +718,110 @@
 				"type": "SqlQuery"
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureDataLakeStorage1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('AzureDataLakeStorage1_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('AzureDataLakeStorage1_accountKey')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DelimitedText1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"p_file_name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().p_file_name",
+							"type": "Expression"
+						},
+						"folderPath": "historical table",
+						"fileSystem": "bronze"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureDataLakeStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Pipeline 1')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSqlTable1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/AzureSqlTable1')]"
+			]
 		}
 	]
 }
