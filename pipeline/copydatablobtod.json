@@ -1,10 +1,10 @@
 {
-	"name": "copysqldatatobronzeayer",
+	"name": "copydatablobtod",
 	"properties": {
 		"activities": [
 			{
-				"name": "Lookup1",
-				"type": "Lookup",
+				"name": "Get Metadata1",
+				"type": "GetMetadata",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -15,20 +15,24 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"source": {
-						"type": "AzureSqlSource",
-						"sqlReaderQuery": "SELECT \ns.name  as SchemaName,\nt.Name as TableName \nFROM sys.tables t\nJOIN sys.schemas s\nON t.schema_id = s.schema_id \nWHERE s.name = 'SalesLT'",
-						"queryTimeout": "02:00:00",
-						"partitionOption": "None"
-					},
 					"dataset": {
-						"referenceName": "AzureSqlTable1",
+						"referenceName": "DelimitedText1",
 						"type": "DatasetReference",
 						"parameters": {
-							"tablename": "tuhiiih"
+							"p_file_name": "*"
 						}
 					},
-					"firstRowOnly": false
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
 				}
 			},
 			{
@@ -36,7 +40,7 @@
 				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "Lookup1",
+						"activity": "Get Metadata1",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -45,7 +49,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('Lookup1').output.value",
+						"value": "@activity('Get Metadata1').output.childItems",
 						"type": "Expression"
 					},
 					"activities": [
@@ -63,23 +67,22 @@
 							"userProperties": [],
 							"typeProperties": {
 								"source": {
-									"type": "AzureSqlSource",
-									"sqlReaderQuery": {
-										"value": "@{concat('SELECT * FROM ', item().SchemaName, '.', item().TableName)}",
-										"type": "Expression"
-									},
-									"queryTimeout": "02:00:00",
-									"partitionOption": "None"
-								},
-								"sink": {
-									"type": "ParquetSink",
+									"type": "DelimitedTextSource",
 									"storeSettings": {
-										"type": "AzureBlobFSWriteSettings",
-										"copyBehavior": "PreserveHierarchy"
+										"type": "AzureBlobFSReadSettings",
+										"recursive": false,
+										"enablePartitionDiscovery": false
 									},
 									"formatSettings": {
-										"type": "ParquetWriteSettings"
+										"type": "DelimitedTextReadSettings"
 									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false,
+									"tableOption": "autoCreate",
+									"disableMetricsCollection": false
 								},
 								"enableStaging": false,
 								"translator": {
@@ -93,24 +96,23 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "AzureSqlTable1",
+									"referenceName": "DelimitedText1",
 									"type": "DatasetReference",
 									"parameters": {
-										"tablename": "vgchj"
+										"p_file_name": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
 									}
 								}
 							],
 							"outputs": [
 								{
-									"referenceName": "Parquet1",
+									"referenceName": "AzureSqlTable1",
 									"type": "DatasetReference",
 									"parameters": {
-										"schemaname": {
-											"value": "@item().SchemaName",
-											"type": "Expression"
-										},
 										"tablename": {
-											"value": "@item().TableName",
+											"value": "@item().name",
 											"type": "Expression"
 										}
 									}

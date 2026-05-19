@@ -6,7 +6,7 @@
 		"pipelines": [
 			{
 				"pipelineReference": {
-					"referenceName": "storage_ingestion",
+					"referenceName": "copystotobronzelayer",
 					"type": "PipelineReference"
 				}
 			}

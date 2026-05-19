@@ -19,7 +19,7 @@
 					"value": "@dataset().p_file_name",
 					"type": "Expression"
 				},
-				"folderPath": "sales",
+				"folderPath": "sales1",
 				"fileSystem": "landing"
 			},
 			"columnDelimiter": ",",

@@ -19,8 +19,8 @@
 					"value": "@dataset().p_file_name",
 					"type": "Expression"
 				},
-				"folderPath": "historical table",
-				"fileSystem": "bronze"
+				"folderPath": "sales1",
+				"fileSystem": "landing"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
