@@ -17,16 +17,13 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderQuery": "SELECT \ns.name  as SchemaName,\nt.Name as TableName \nFROM sys.tables t\nJOIN sys.schemas s\nON t.schema_id = s.schema_id \nWHERE s.name = 'SalesLT'",
+						"sqlReaderQuery": "SELECT \ns.name  as SchemaName,\nt.Name as TableName \nFROM sys.tables t\nJOIN sys.schemas s\nON t.schema_id = s.schema_id \nWHERE s.name = 'Sales'",
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
 					"dataset": {
-						"referenceName": "AzureSqlTable1",
-						"type": "DatasetReference",
-						"parameters": {
-							"tablename": "tuhiiih"
-						}
+						"referenceName": "AzureSqlTable2",
+						"type": "DatasetReference"
 					},
 					"firstRowOnly": false
 				}
@@ -93,11 +90,8 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "AzureSqlTable1",
-									"type": "DatasetReference",
-									"parameters": {
-										"tablename": "vgchj"
-									}
+									"referenceName": "AzureSqlTable2",
+									"type": "DatasetReference"
 								}
 							],
 							"outputs": [

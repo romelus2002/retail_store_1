@@ -22,7 +22,7 @@
 					"value": "@{concat(dataset().tablename, '.parquet')}",
 					"type": "Expression"
 				},
-				"folderPath": "SalesLT",
+				"folderPath": "Sales_DB",
 				"fileSystem": "bronze"
 			},
 			"compressionCodec": "snappy"
