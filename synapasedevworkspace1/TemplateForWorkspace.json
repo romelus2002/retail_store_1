@@ -66,6 +66,316 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('workspaceName'), '/bonze to Silver')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "cleaning_and_validation",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/superromelus@gmail.com/cleaning_and_validation"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureDatabricks1",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureDatabricks1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/copydatablobtod')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Metadata1",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "DelimitedText1",
+								"type": "DatasetReference",
+								"parameters": {
+									"p_file_name": "*"
+								}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get Metadata1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get Metadata1').output.childItems",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy data1",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": false,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false,
+											"tableOption": "autoCreate",
+											"disableMetricsCollection": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DelimitedText1",
+											"type": "DatasetReference",
+											"parameters": {
+												"p_file_name": {
+													"value": "@item().name",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "AzureSqlTable1",
+											"type": "DatasetReference",
+											"parameters": {
+												"tablename": {
+													"value": "@item().name",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/DelimitedText1')]",
+				"[concat(variables('workspaceId'), '/datasets/AzureSqlTable1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/copydatabloodatabas')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Metadata1",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "DelimitedText1",
+								"type": "DatasetReference",
+								"parameters": {
+									"p_file_name": "*"
+								}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get Metadata1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get Metadata1').output.childItems",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy data1",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": false,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false,
+											"tableOption": "autoCreate",
+											"disableMetricsCollection": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DelimitedText1",
+											"type": "DatasetReference",
+											"parameters": {
+												"p_file_name": {
+													"value": "@item().name",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "AzureSqlTable1",
+											"type": "DatasetReference",
+											"parameters": {
+												"tablename": {
+													"value": "@item().name",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/DelimitedText1')]",
+				"[concat(variables('workspaceId'), '/datasets/AzureSqlTable1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/copysqldatatobronzeayer')]",
 			"type": "Microsoft.Synapse/workspaces/pipelines",
 			"apiVersion": "2019-06-01-preview",
@@ -353,6 +663,185 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/load_api_market_to_bronze')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Notebook1",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/superromelus@gmail.com/api_ingestion_to_bronze"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureDatabricks1",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureDatabricks1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/silver to Gold')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "summary_aggregation",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/superromelus@gmail.com/gold_summary"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureDatabricks1",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureDatabricks1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/silver_to_gold')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "load_api_market_to_bronze",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "load_api_market_to_bronze",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Bronze_to_silver",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "load_api_market_to_bronze",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "copysqldatatobronzeayer",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "bonze to Silver",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "copysqldatatobronzeayer",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "copysqldatatobronzeayer",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Execute Pipeline1",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Bronze_to_silver",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "silver to Gold",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/load_api_market_to_bronze')]",
+				"[concat(variables('workspaceId'), '/pipelines/bonze to Silver')]",
+				"[concat(variables('workspaceId'), '/pipelines/copysqldatatobronzeayer')]",
+				"[concat(variables('workspaceId'), '/pipelines/silver to Gold')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/AzureSqlTable1')]",
 			"type": "Microsoft.Synapse/workspaces/datasets",
 			"apiVersion": "2019-06-01-preview",
@@ -376,6 +865,24 @@
 						"type": "Expression"
 					}
 				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/azuresqlparam')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureSqlTable2')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "azuresqlparam",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/linkedServices/azuresqlparam')]"
@@ -866,7 +1373,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"content": {
-					"query": "-- Correct path: container=gold, folder=saleslt/fact_sales\nSELECT * FROM OPENROWSET(\n    BULK 'https://storageproject12026.dfs.core.windows.net/gold/saleslt/fact_sales/',\n    FORMAT = 'DELTA'\n) AS [fact_sales]\n\n\n-- Step 1: create a dedicated database for Gold\nCREATE DATABASE gold_saleslt;\n-- Step 2: create views for all 8 Gold tables\nUSE gold_saleslt;\n\nCREATE OR ALTER VIEW fact_sales AS\nSELECT * FROM OPENROWSET(\n    BULK 'https://storageproject12026.dfs.core.windows.net/gold/saleslt/fact_sales/',\n    FORMAT = 'DELTA'\n) AS [r];\n\nSELECT * from fact_sales;",
+					"query": "SELECT * FROM OPENROWSET(\n    BULK        'dim_customer',\n    DATA_SOURCE = 'gold_storage',\n    FORMAT      = 'DELTA'\n) AS r;\nGO\n\nSELECT * FROM OPENROWSET(\n    BULK        'dim_product',\n    DATA_SOURCE = 'gold_storage',\n    FORMAT      = 'DELTA'\n) AS r;\nGO\n\nSELECT * FROM OPENROWSET(\n    BULK        'dim_date',\n    DATA_SOURCE = 'gold_storage',\n    FORMAT      = 'DELTA'\n) AS r;\nGO\n\nSELECT * FROM OPENROWSET(\n    BULK        'fact_sales',\n    DATA_SOURCE = 'gold_storage',\n    FORMAT      = 'DELTA'\n) AS r;\nGO\n\n\nSELECT * FROM OPENROWSET(\n    BULK        'fact_marketing',\n    DATA_SOURCE = 'gold_storage',\n    FORMAT      = 'DELTA'\n) AS r;\nGO\n\n-- Verify\nSELECT TABLE_SCHEMA, TABLE_NAME\nFROM   INFORMATION_SCHEMA.TABLES\nWHERE  TABLE_SCHEMA = 'salesDW'\nORDER  BY TABLE_NAME;\nGO",
 					"metadata": {
 						"language": "sql"
 					},
@@ -881,511 +1388,104 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/copydatabloodatabas')]",
-			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"name": "[concat(parameters('workspaceName'), '/SQL script 2')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
-				"activities": [
-					{
-						"name": "Get Metadata1",
-						"type": "GetMetadata",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "DelimitedText1",
-								"type": "DatasetReference",
-								"parameters": {
-									"p_file_name": "*"
-								}
-							},
-							"fieldList": [
-								"childItems"
-							],
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
-							}
-						}
+				"content": {
+					"query": "USE gold_saleslt;\nGO\n\n-- Recreate credential in this database\nCREATE MASTER KEY ENCRYPTION BY PASSWORD = 'YourStrongPassword123!';\nGO\n\nCREATE DATABASE SCOPED CREDENTIAL gold_credential\nWITH IDENTITY = 'Managed Identity';\nGO\n\nCREATE EXTERNAL DATA SOURCE gold_storage\nWITH (\n    LOCATION   = 'https://storageproject12026.dfs.core.windows.net/gold/saleslt',\n    CREDENTIAL = gold_credential\n);\nGO\n",
+					"metadata": {
+						"language": "sql"
 					},
-					{
-						"name": "ForEach1",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Get Metadata1",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Get Metadata1').output.childItems",
-								"type": "Expression"
-							},
-							"activities": [
-								{
-									"name": "Copy data1",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "DelimitedTextSource",
-											"storeSettings": {
-												"type": "AzureBlobFSReadSettings",
-												"recursive": false,
-												"enablePartitionDiscovery": false
-											},
-											"formatSettings": {
-												"type": "DelimitedTextReadSettings"
-											}
-										},
-										"sink": {
-											"type": "AzureSqlSink",
-											"writeBehavior": "insert",
-											"sqlWriterUseTableLock": false,
-											"tableOption": "autoCreate",
-											"disableMetricsCollection": false
-										},
-										"enableStaging": false,
-										"translator": {
-											"type": "TabularTranslator",
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
-										}
-									},
-									"inputs": [
-										{
-											"referenceName": "DelimitedText1",
-											"type": "DatasetReference",
-											"parameters": {
-												"p_file_name": {
-													"value": "@item().name",
-													"type": "Expression"
-												}
-											}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "AzureSqlTable1",
-											"type": "DatasetReference",
-											"parameters": {
-												"tablename": {
-													"value": "@item().name",
-													"type": "Expression"
-												}
-											}
-										}
-									]
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/datasets/DelimitedText1')]",
-				"[concat(variables('workspaceId'), '/datasets/AzureSqlTable1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/copydatablobtod')]",
-			"type": "Microsoft.Synapse/workspaces/pipelines",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"activities": [
-					{
-						"name": "Get Metadata1",
-						"type": "GetMetadata",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "DelimitedText1",
-								"type": "DatasetReference",
-								"parameters": {
-									"p_file_name": "*"
-								}
-							},
-							"fieldList": [
-								"childItems"
-							],
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
-							}
-						}
+					"currentConnection": {
+						"databaseName": "gold_saleslt",
+						"poolName": "Built-in"
 					},
-					{
-						"name": "ForEach1",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Get Metadata1",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Get Metadata1').output.childItems",
-								"type": "Expression"
-							},
-							"activities": [
-								{
-									"name": "Copy data1",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "DelimitedTextSource",
-											"storeSettings": {
-												"type": "AzureBlobFSReadSettings",
-												"recursive": false,
-												"enablePartitionDiscovery": false
-											},
-											"formatSettings": {
-												"type": "DelimitedTextReadSettings"
-											}
-										},
-										"sink": {
-											"type": "AzureSqlSink",
-											"writeBehavior": "insert",
-											"sqlWriterUseTableLock": false,
-											"tableOption": "autoCreate",
-											"disableMetricsCollection": false
-										},
-										"enableStaging": false,
-										"translator": {
-											"type": "TabularTranslator",
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
-										}
-									},
-									"inputs": [
-										{
-											"referenceName": "DelimitedText1",
-											"type": "DatasetReference",
-											"parameters": {
-												"p_file_name": {
-													"value": "@item().name",
-													"type": "Expression"
-												}
-											}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "AzureSqlTable1",
-											"type": "DatasetReference",
-											"parameters": {
-												"tablename": {
-													"value": "@item().name",
-													"type": "Expression"
-												}
-											}
-										}
-									]
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
+					"resultLimit": 5000
 				},
-				"annotations": []
+				"type": "SqlQuery"
 			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/datasets/DelimitedText1')]",
-				"[concat(variables('workspaceId'), '/datasets/AzureSqlTable1')]"
-			]
+			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/AzureSqlTable2')]",
-			"type": "Microsoft.Synapse/workspaces/datasets",
+			"name": "[concat(parameters('workspaceName'), '/create_view')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
-				"linkedServiceName": {
-					"referenceName": "azuresqlparam",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {}
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/linkedServices/azuresqlparam')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/load_api_market_to_bronze')]",
-			"type": "Microsoft.Synapse/workspaces/pipelines",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"activities": [
-					{
-						"name": "Notebook1",
-						"type": "DatabricksNotebook",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"notebookPath": "/Users/superromelus@gmail.com/api_ingestion_to_bronze"
-						},
-						"linkedServiceName": {
-							"referenceName": "AzureDatabricks1",
-							"type": "LinkedServiceReference"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/linkedServices/AzureDatabricks1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/silver_to_gold')]",
-			"type": "Microsoft.Synapse/workspaces/pipelines",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"activities": [
-					{
-						"name": "load_api_market_to_bronze",
-						"type": "ExecutePipeline",
-						"dependsOn": [],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "load_api_market_to_bronze",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
+				"content": {
+					"query": "USE gold_saleslt;\nGO\n\nCREATE SCHEMA salesDW;\nGO\n\nCREATE OR ALTER VIEW salesDW.dim_customer AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/dim_customer',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.dim_product AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/dim_product',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.dim_date AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/dim_date',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.fact_sales AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/fact_sales',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.fact_marketing AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/fact_marketing',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\n-- Verify\nSELECT TABLE_SCHEMA, TABLE_NAME\nFROM   INFORMATION_SCHEMA.TABLES\nWHERE  TABLE_SCHEMA = 'salesDW'\nORDER  BY TABLE_NAME;\nGO",
+					"metadata": {
+						"language": "sql"
 					},
-					{
-						"name": "Bronze_to_silver",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "load_api_market_to_bronze",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "copysqldatatobronzeayer",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "bonze to Silver",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
+					"currentConnection": {
+						"databaseName": "gold_saleslt",
+						"poolName": "Built-in"
 					},
-					{
-						"name": "copysqldatatobronzeayer",
-						"type": "ExecutePipeline",
-						"dependsOn": [],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "copysqldatatobronzeayer",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					},
-					{
-						"name": "Execute Pipeline1",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "Bronze_to_silver",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "silver to Gold",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
+					"resultLimit": 5000
 				},
-				"annotations": []
+				"type": "SqlQuery"
 			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/pipelines/load_api_market_to_bronze')]",
-				"[concat(variables('workspaceId'), '/pipelines/bonze to Silver')]",
-				"[concat(variables('workspaceId'), '/pipelines/copysqldatatobronzeayer')]",
-				"[concat(variables('workspaceId'), '/pipelines/silver to Gold')]"
-			]
+			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/bonze to Silver')]",
-			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"name": "[concat(parameters('workspaceName'), '/kpi_view')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
-				"activities": [
-					{
-						"name": "cleaning_and_validation",
-						"type": "DatabricksNotebook",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"notebookPath": "/Users/superromelus@gmail.com/cleaning_and_validation"
-						},
-						"linkedServiceName": {
-							"referenceName": "AzureDatabricks1",
-							"type": "LinkedServiceReference"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
+				"content": {
+					"query": "USE gold_saleslt;\nGO\n\n-- ── SALES KPI 1 — Daily Sales Summary ────────────────────────\nCREATE OR ALTER VIEW salesDW.kpi_daily_sales AS\nSELECT\n    f.order_date_key                              AS order_date,\n    COUNT(DISTINCT f.sales_order_id)              AS total_orders,\n    SUM(f.order_qty)                              AS total_items_sold,\n    ROUND(SUM(f.line_total), 2)                   AS daily_revenue,\n    ROUND(AVG(f.line_total), 2)                   AS avg_line_value,\n    ROUND(AVG(CAST(f.days_to_ship AS FLOAT)), 1)  AS avg_days_to_ship\nFROM salesDW.fact_sales f\nGROUP BY f.order_date_key;\nGO\n\nCREATE OR ALTER VIEW salesDW.kpi_monthly_revenue AS\nSELECT\n    d.year,\n    d.month_number,\n    d.month_name,\n    d.month_year,\n    d.quarter_label,\n    COUNT(DISTINCT f.sales_order_id)              AS total_orders,\n    SUM(f.order_qty)                              AS total_qty,\n    ROUND(SUM(f.line_total), 2)                   AS monthly_revenue,\n    ROUND(AVG(f.order_total_due), 2)              AS avg_order_value,\n    ROUND(AVG(CAST(f.days_to_ship AS FLOAT)), 1)  AS avg_days_to_ship\nFROM      salesDW.fact_sales f\nJOIN      salesDW.dim_date   d\n       ON f.order_date_key = d.date_key\nGROUP BY  d.year, d.month_number, d.month_name,\n          d.month_year, d.quarter_label;\nGO\n\nCREATE OR ALTER VIEW salesDW.kpi_product_performance AS\nSELECT\n    p.product_name,\n    p.price_range,\n    p.product_status,\n    p.gross_margin                                AS unit_gross_margin,\n    COUNT(DISTINCT f.sales_order_id)              AS total_orders,\n    SUM(f.order_qty)                              AS total_qty_sold,\n    ROUND(SUM(f.line_total), 2)                   AS total_revenue,\n    ROUND(AVG(f.discount_rate) * 100, 2)          AS avg_discount_pct,\n    ROUND(SUM(f.order_qty) * p.gross_margin, 2)   AS est_gross_profit\nFROM      salesDW.fact_sales  f\nJOIN      salesDW.dim_product p\n       ON f.product_key = p.product_key\n      AND p.scd_is_current = 1\nGROUP BY  p.product_name, p.price_range,\n          p.product_status, p.gross_margin;\nGO\n\n\nCREATE OR ALTER VIEW salesDW.kpi_daily_leads AS\nSELECT\n    created_date_key                              AS activity_date,\n    COUNT(*)                                      AS new_leads,\n    ROUND(AVG(CAST(lead_score AS FLOAT)), 1)      AS avg_lead_score,\n    SUM(CASE WHEN is_converted = 1 THEN 1 ELSE 0 END) AS conversions,\n    ROUND(\n        SUM(CASE WHEN is_converted = 1 THEN 1.0 ELSE 0 END)\n        / COUNT(*) * 100, 1\n    )                                             AS conversion_rate_pct,\n    ROUND(SUM(estimated_value), 2)                AS pipeline_value\nFROM salesDW.fact_marketing\nGROUP BY created_date_key;\nGO\n\nCREATE OR ALTER VIEW salesDW.kpi_monthly_campaign_roi AS\nSELECT\n    d.month_year,\n    d.month_number,\n    m.campaign_id,\n    COUNT(*)                                      AS total_leads,\n    SUM(CASE WHEN m.is_converted = 1 THEN 1 ELSE 0 END) AS converted,\n    ROUND(\n        SUM(CASE WHEN m.is_converted = 1 THEN 1.0 ELSE 0 END)\n        / COUNT(*) * 100, 1\n    )                                             AS conversion_rate_pct,\n    ROUND(AVG(CAST(m.lead_score AS FLOAT)), 1)    AS avg_lead_score,\n    ROUND(SUM(m.estimated_value), 2)              AS total_pipeline_value,\n    ROUND(SUM(\n        CASE WHEN m.is_converted = 1\n             THEN m.estimated_value ELSE 0 END\n    ), 2)                                         AS converted_value\nFROM      salesDW.fact_marketing m\nJOIN      salesDW.dim_date       d\n       ON m.created_date_key = d.date_key\nGROUP BY  d.month_year, d.month_number, m.campaign_id;\nGO\n\n\nCREATE OR ALTER VIEW salesDW.kpi_lead_funnel AS\nSELECT\n    lead_status,\n    lead_quality,\n    COUNT(*)                                      AS total_leads,\n    ROUND(AVG(CAST(lead_score AS FLOAT)), 1)      AS avg_score,\n    ROUND(AVG(estimated_value), 2)                AS avg_deal_value,\n    ROUND(SUM(estimated_value), 2)                AS total_pipeline,\n    ROUND(\n        COUNT(*) * 100.0\n        / SUM(COUNT(*)) OVER (), 1\n    )                                             AS pct_of_total\nFROM salesDW.fact_marketing\nGROUP BY lead_status, lead_quality;\nGO\n\n\n-- ── Quick test ────────────────────────────────────────────────\nSELECT TOP 10 * FROM salesDW.kpi_daily_sales       ORDER BY order_date DESC;\nSELECT TOP 10 * FROM salesDW.kpi_monthly_revenue   ORDER BY year, month_number;\nSELECT TOP 10 * FROM salesDW.kpi_product_performance ORDER BY total_revenue DESC;\nSELECT TOP 10 * FROM salesDW.kpi_daily_leads       ORDER BY activity_date DESC;\nSELECT TOP 10 * FROM salesDW.kpi_monthly_campaign_roi ORDER BY month_number;\nSELECT TOP 10 * FROM salesDW.kpi_lead_funnel       ORDER BY avg_score DESC;\nGO\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_saleslt",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
 				},
-				"annotations": []
+				"type": "SqlQuery"
 			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/linkedServices/AzureDatabricks1')]"
-			]
+			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/silver to Gold')]",
-			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"name": "[concat(parameters('workspaceName'), '/SQL script 3')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
-				"activities": [
-					{
-						"name": "summary_aggregation",
-						"type": "DatabricksNotebook",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"notebookPath": "/Users/superromelus@gmail.com/gold_summary"
-						},
-						"linkedServiceName": {
-							"referenceName": "AzureDatabricks1",
-							"type": "LinkedServiceReference"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
+				"content": {
+					"query": "CREATE USER [superromelus_gmail.com#EXT#@superromelusgmail.onmicrosoft.com]\nFROM EXTERNAL PROVIDER;\n\nALTER ROLE db_datareader\nADD MEMBER [superromelus_gmail.com#EXT#@superromelusgmail.onmicrosoft.com];\n\nUSE gold_saleslt;\nGO\n\n-- Drop existing if any\nDROP DATABASE SCOPED CREDENTIAL [https://storageproject12026.dfs.core.windows.net];\nGO\n\n-- Recreate with User Identity instead of Managed Identity\nCREATE DATABASE SCOPED CREDENTIAL [https://storageproject12026.dfs.core.windows.net]\nWITH IDENTITY = 'User Identity';\nGO\n\n-- Grant to public\nGRANT REFERENCES ON DATABASE SCOPED CREDENTIAL::[https://storageproject12026.dfs.core.windows.net]\nTO [public];\nGO\n\n-- Test immediately\nSELECT TOP 5 * FROM salesDW.dim_customer;\nGO",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_saleslt",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
 				},
-				"annotations": []
+				"type": "SqlQuery"
 			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/linkedServices/AzureDatabricks1')]"
-			]
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 4')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "USE gold_saleslt;\nGO\n\nSELECT name, credential_identity\nFROM   sys.database_scoped_credentials;\nGO\n\nUSE gold_saleslt;\nGO\n\n-- Drop old if needed\nDROP DATABASE SCOPED CREDENTIAL [https://storageproject12026.dfs.core.windows.net];\nGO\n\n-- Recreate pointing to root\nCREATE DATABASE SCOPED CREDENTIAL [https://storageproject12026.dfs.core.windows.net/gold/saleslt]\nWITH IDENTITY = 'Managed Identity',\nSECRET = 'sp=racwdlmeop&st=2026-05-21T06:47:10Z&se=2027-05-20T15:02:10Z&spr=https&sv=2026-02-06&sr=c&sig=5ia7LcRO6dh15%2B3pd2KOZuFwa69kAveH1NPAg3ze3yA%3D';\n\n\n\nGRANT REFERENCES ON CREDENTIAL::[https://storageproject12026.dfs.core.windows.net/gold/saleslt] TO [superromelus_gmail.com#EXT#@superromelusgmail.onmicrosoft.com];\n\nUSE master;\nGO\n\nCREATE LOGIN [mypowerbicreation@superromelusgmail.onmicrosoft.com] \nFROM EXTERNAL PROVIDER;\nGO\n\nUSE gold_saleslt;\nGO\n\nCREATE USER [superromelus_gmail.com#EXT#@superromelusgmail.onmicrosoft.com] \nFROM EXTERNAL PROVIDER;\nGO\n\nUSE gold_saleslt;\nGO\n\n-- Transfer ownership to SA or another admin\nALTER AUTHORIZATION ON DATABASE::gold_saleslt TO sa;\nGO\n\n\nUSE gold_saleslt;\nGO\n\nCREATE USER [mypowerbicreation@superromelusgmail.onmicrosoft.com]\nFROM EXTERNAL PROVIDER\nWITH DEFAULT_SCHEMA = salesDW;\nGO\n\n\nUSE gold_saleslt;\nGO\n\n-- Read access\nALTER ROLE db_datareader \nADD MEMBER [mypowerbicreation@superromelusgmail.onmicrosoft.com]\nGO\nGRANT SELECT ON SCHEMA::salesDW \nTO [mypowerbicreation@superromelusgmail.onmicrosoft.com];\nGO\n\nGRANT REFERENCES ON DATABASE SCOPED CREDENTIAL::\"https://storageproject12026.dfs.core.windows.net\"\nTO [mypowerbicreation@superromelusgmail.onmicrosoft.com];\nGO\n\n\nSELECT OBJECT_DEFINITION(OBJECT_ID('salesDW.dim_customer'));\n\nDROP DATABASE SCOPED CREDENTIAL [https://storageproject12026.dfs.core.windows.net]/\nWITH IDENTITY = 'Managed Identity';\nGO",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
 		}
 	]
 }
