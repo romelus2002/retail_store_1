@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 4",
+	"properties": {
+		"content": {
+			"query": "USE gold_saleslt;\nGO\n\nSELECT name, credential_identity\nFROM   sys.database_scoped_credentials;\nGO\n\nUSE gold_saleslt;\nGO\n\n-- Drop old if needed\nDROP DATABASE SCOPED CREDENTIAL [https://storageproject12026.dfs.core.windows.net];\nGO\n\n-- Recreate pointing to root\nCREATE DATABASE SCOPED CREDENTIAL [https://storageproject12026.dfs.core.windows.net/gold/saleslt]\nWITH IDENTITY = 'Managed Identity',\nSECRET = 'sp=racwdlmeop&st=2026-05-21T06:47:10Z&se=2027-05-20T15:02:10Z&spr=https&sv=2026-02-06&sr=c&sig=5ia7LcRO6dh15%2B3pd2KOZuFwa69kAveH1NPAg3ze3yA%3D';\n\n\n\nGRANT REFERENCES ON CREDENTIAL::[https://storageproject12026.dfs.core.windows.net/gold/saleslt] TO [superromelus_gmail.com#EXT#@superromelusgmail.onmicrosoft.com];\n\nUSE master;\nGO\n\nCREATE LOGIN [mypowerbicreation@superromelusgmail.onmicrosoft.com] \nFROM EXTERNAL PROVIDER;\nGO\n\nUSE gold_saleslt;\nGO\n\nCREATE USER [superromelus_gmail.com#EXT#@superromelusgmail.onmicrosoft.com] \nFROM EXTERNAL PROVIDER;\nGO\n\nUSE gold_saleslt;\nGO\n\n-- Transfer ownership to SA or another admin\nALTER AUTHORIZATION ON DATABASE::gold_saleslt TO sa;\nGO\n\n\nUSE gold_saleslt;\nGO\n\nCREATE USER [mypowerbicreation@superromelusgmail.onmicrosoft.com]\nFROM EXTERNAL PROVIDER\nWITH DEFAULT_SCHEMA = salesDW;\nGO\n\n\nUSE gold_saleslt;\nGO\n\n-- Read access\nALTER ROLE db_datareader \nADD MEMBER [mypowerbicreation@superromelusgmail.onmicrosoft.com]\nGO\nGRANT SELECT ON SCHEMA::salesDW \nTO [mypowerbicreation@superromelusgmail.onmicrosoft.com];\nGO\n\nGRANT REFERENCES ON DATABASE SCOPED CREDENTIAL::\"https://storageproject12026.dfs.core.windows.net\"\nTO [mypowerbicreation@superromelusgmail.onmicrosoft.com];\nGO\n\n\nSELECT OBJECT_DEFINITION(OBJECT_ID('salesDW.dim_customer'));\n\nDROP DATABASE SCOPED CREDENTIAL [https://storageproject12026.dfs.core.windows.net]/\nWITH IDENTITY = 'Managed Identity';\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

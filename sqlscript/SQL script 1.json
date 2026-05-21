@@ -2,7 +2,7 @@
 	"name": "SQL script 1",
 	"properties": {
 		"content": {
-			"query": "-- Correct path: container=gold, folder=saleslt/fact_sales\nSELECT * FROM OPENROWSET(\n    BULK 'https://storageproject12026.dfs.core.windows.net/gold/saleslt/fact_sales/',\n    FORMAT = 'DELTA'\n) AS [fact_sales]\n\n\n-- Step 1: create a dedicated database for Gold\nCREATE DATABASE gold_saleslt;\n-- Step 2: create views for all 8 Gold tables\nUSE gold_saleslt;\n\nCREATE OR ALTER VIEW fact_sales AS\nSELECT * FROM OPENROWSET(\n    BULK 'https://storageproject12026.dfs.core.windows.net/gold/saleslt/fact_sales/',\n    FORMAT = 'DELTA'\n) AS [r];\n\nSELECT * from fact_sales;",
+			"query": "SELECT * FROM OPENROWSET(\n    BULK        'dim_customer',\n    DATA_SOURCE = 'gold_storage',\n    FORMAT      = 'DELTA'\n) AS r;\nGO\n\nSELECT * FROM OPENROWSET(\n    BULK        'dim_product',\n    DATA_SOURCE = 'gold_storage',\n    FORMAT      = 'DELTA'\n) AS r;\nGO\n\nSELECT * FROM OPENROWSET(\n    BULK        'dim_date',\n    DATA_SOURCE = 'gold_storage',\n    FORMAT      = 'DELTA'\n) AS r;\nGO\n\nSELECT * FROM OPENROWSET(\n    BULK        'fact_sales',\n    DATA_SOURCE = 'gold_storage',\n    FORMAT      = 'DELTA'\n) AS r;\nGO\n\n\nSELECT * FROM OPENROWSET(\n    BULK        'fact_marketing',\n    DATA_SOURCE = 'gold_storage',\n    FORMAT      = 'DELTA'\n) AS r;\nGO\n\n-- Verify\nSELECT TABLE_SCHEMA, TABLE_NAME\nFROM   INFORMATION_SCHEMA.TABLES\nWHERE  TABLE_SCHEMA = 'salesDW'\nORDER  BY TABLE_NAME;\nGO",
 			"metadata": {
 				"language": "sql"
 			},

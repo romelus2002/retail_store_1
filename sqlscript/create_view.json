@@ -1,0 +1,17 @@
+{
+	"name": "create_view",
+	"properties": {
+		"content": {
+			"query": "USE gold_saleslt;\nGO\n\nCREATE SCHEMA salesDW;\nGO\n\nCREATE OR ALTER VIEW salesDW.dim_customer AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/dim_customer',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.dim_product AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/dim_product',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.dim_date AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/dim_date',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.fact_sales AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/fact_sales',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.fact_marketing AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/fact_marketing',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\n-- Verify\nSELECT TABLE_SCHEMA, TABLE_NAME\nFROM   INFORMATION_SCHEMA.TABLES\nWHERE  TABLE_SCHEMA = 'salesDW'\nORDER  BY TABLE_NAME;\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "gold_saleslt",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

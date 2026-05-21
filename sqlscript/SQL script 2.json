@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 2",
+	"properties": {
+		"content": {
+			"query": "USE gold_saleslt;\nGO\n\n-- Recreate credential in this database\nCREATE MASTER KEY ENCRYPTION BY PASSWORD = 'YourStrongPassword123!';\nGO\n\nCREATE DATABASE SCOPED CREDENTIAL gold_credential\nWITH IDENTITY = 'Managed Identity';\nGO\n\nCREATE EXTERNAL DATA SOURCE gold_storage\nWITH (\n    LOCATION   = 'https://storageproject12026.dfs.core.windows.net/gold/saleslt',\n    CREDENTIAL = gold_credential\n);\nGO\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "gold_saleslt",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 3",
+	"properties": {
+		"content": {
+			"query": "CREATE USER [superromelus_gmail.com#EXT#@superromelusgmail.onmicrosoft.com]\nFROM EXTERNAL PROVIDER;\n\nALTER ROLE db_datareader\nADD MEMBER [superromelus_gmail.com#EXT#@superromelusgmail.onmicrosoft.com];\n\nUSE gold_saleslt;\nGO\n\n-- Drop existing if any\nDROP DATABASE SCOPED CREDENTIAL [https://storageproject12026.dfs.core.windows.net];\nGO\n\n-- Recreate with User Identity instead of Managed Identity\nCREATE DATABASE SCOPED CREDENTIAL [https://storageproject12026.dfs.core.windows.net]\nWITH IDENTITY = 'User Identity';\nGO\n\n-- Grant to public\nGRANT REFERENCES ON DATABASE SCOPED CREDENTIAL::[https://storageproject12026.dfs.core.windows.net]\nTO [public];\nGO\n\n-- Test immediately\nSELECT TOP 5 * FROM salesDW.dim_customer;\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "gold_saleslt",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
