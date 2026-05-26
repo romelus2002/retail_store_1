@@ -1,8 +1,8 @@
-# SalesLT + Marketing Data Pipeline
 
-> End-to-end Azure data engineering project unifying transactional sales data with behavioral marketing data to provide actionable intelligence for sales and marketing teams — tracking revenue performance, product profitability, lead pipeline value and campaign ROI from a single governed platform.
+## Project Description ( SalesLT + Marketing Data Pipeline)
 
----
+This end-to-end Azure data engineering project was built to provide actionable intelligence to both the sales and marketing teams of a cycling products company. Using a medallion architecture (Bronze → Silver → Gold) orchestrated by ADF and transformed in Databricks, the data is governed through Unity Catalog and served via Synapse Serverless SQL views to a Power BI dashboard tracking six core KPIs — **daily sales summary**, **monthly revenue trend** and **product performance** on the sales side, and **daily lead activity**, **monthly campaign ROI** and **lead conversion funnel** on the marketing side. Together these metrics enable the sales team to monitor revenue, order volume and product profitability while the marketing team tracks pipeline value, lead quality and campaign return on investment — all refreshed automatically on each pipeline run.
+
 
 ## Architecture — Medallion Pattern
 
@@ -304,6 +304,3 @@ fact_marketing[created_date_key] → dim_date[date_key]
 
 ---
 
-## Project Description
-
-This end-to-end Azure data engineering project was built to provide actionable intelligence to both the sales and marketing teams of a cycling products company. Using a medallion architecture (Bronze → Silver → Gold) orchestrated by ADF and transformed in Databricks, the data is governed through Unity Catalog and served via Synapse Serverless SQL views to a Power BI dashboard tracking six core KPIs — **daily sales summary**, **monthly revenue trend** and **product performance** on the sales side, and **daily lead activity**, **monthly campaign ROI** and **lead conversion funnel** on the marketing side. Together these metrics enable the sales team to monitor revenue, order volume and product profitability while the marketing team tracks pipeline value, lead quality and campaign return on investment — all refreshed automatically on each pipeline run.
