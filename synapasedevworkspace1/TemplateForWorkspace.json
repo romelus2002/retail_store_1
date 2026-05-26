@@ -1408,46 +1408,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/create_view')]",
-			"type": "Microsoft.Synapse/workspaces/sqlscripts",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"content": {
-					"query": "USE gold_saleslt;\nGO\n\nCREATE SCHEMA salesDW;\nGO\n\nCREATE OR ALTER VIEW salesDW.dim_customer AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/dim_customer',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.dim_product AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/dim_product',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.dim_date AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/dim_date',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.fact_sales AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/fact_sales',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.fact_marketing AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/fact_marketing',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\n-- Verify\nSELECT TABLE_SCHEMA, TABLE_NAME\nFROM   INFORMATION_SCHEMA.TABLES\nWHERE  TABLE_SCHEMA = 'salesDW'\nORDER  BY TABLE_NAME;\nGO",
-					"metadata": {
-						"language": "sql"
-					},
-					"currentConnection": {
-						"databaseName": "gold_saleslt",
-						"poolName": "Built-in"
-					},
-					"resultLimit": 5000
-				},
-				"type": "SqlQuery"
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/kpi_view')]",
-			"type": "Microsoft.Synapse/workspaces/sqlscripts",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"content": {
-					"query": "USE gold_saleslt;\nGO\n\n-- ── SALES KPI 1 — Daily Sales Summary ────────────────────────\nCREATE OR ALTER VIEW salesDW.kpi_daily_sales AS\nSELECT\n    f.order_date_key                              AS order_date,\n    COUNT(DISTINCT f.sales_order_id)              AS total_orders,\n    SUM(f.order_qty)                              AS total_items_sold,\n    ROUND(SUM(f.line_total), 2)                   AS daily_revenue,\n    ROUND(AVG(f.line_total), 2)                   AS avg_line_value,\n    ROUND(AVG(CAST(f.days_to_ship AS FLOAT)), 1)  AS avg_days_to_ship\nFROM salesDW.fact_sales f\nGROUP BY f.order_date_key;\nGO\n\nCREATE OR ALTER VIEW salesDW.kpi_monthly_revenue AS\nSELECT\n    d.year,\n    d.month_number,\n    d.month_name,\n    d.month_year,\n    d.quarter_label,\n    COUNT(DISTINCT f.sales_order_id)              AS total_orders,\n    SUM(f.order_qty)                              AS total_qty,\n    ROUND(SUM(f.line_total), 2)                   AS monthly_revenue,\n    ROUND(AVG(f.order_total_due), 2)              AS avg_order_value,\n    ROUND(AVG(CAST(f.days_to_ship AS FLOAT)), 1)  AS avg_days_to_ship\nFROM      salesDW.fact_sales f\nJOIN      salesDW.dim_date   d\n       ON f.order_date_key = d.date_key\nGROUP BY  d.year, d.month_number, d.month_name,\n          d.month_year, d.quarter_label;\nGO\n\nCREATE OR ALTER VIEW salesDW.kpi_product_performance AS\nSELECT\n    p.product_name,\n    p.price_range,\n    p.product_status,\n    p.gross_margin                                AS unit_gross_margin,\n    COUNT(DISTINCT f.sales_order_id)              AS total_orders,\n    SUM(f.order_qty)                              AS total_qty_sold,\n    ROUND(SUM(f.line_total), 2)                   AS total_revenue,\n    ROUND(AVG(f.discount_rate) * 100, 2)          AS avg_discount_pct,\n    ROUND(SUM(f.order_qty) * p.gross_margin, 2)   AS est_gross_profit\nFROM      salesDW.fact_sales  f\nJOIN      salesDW.dim_product p\n       ON f.product_key = p.product_key\n      AND p.scd_is_current = 1\nGROUP BY  p.product_name, p.price_range,\n          p.product_status, p.gross_margin;\nGO\n\n\nCREATE OR ALTER VIEW salesDW.kpi_daily_leads AS\nSELECT\n    created_date_key                              AS activity_date,\n    COUNT(*)                                      AS new_leads,\n    ROUND(AVG(CAST(lead_score AS FLOAT)), 1)      AS avg_lead_score,\n    SUM(CASE WHEN is_converted = 1 THEN 1 ELSE 0 END) AS conversions,\n    ROUND(\n        SUM(CASE WHEN is_converted = 1 THEN 1.0 ELSE 0 END)\n        / COUNT(*) * 100, 1\n    )                                             AS conversion_rate_pct,\n    ROUND(SUM(estimated_value), 2)                AS pipeline_value\nFROM salesDW.fact_marketing\nGROUP BY created_date_key;\nGO\n\nCREATE OR ALTER VIEW salesDW.kpi_monthly_campaign_roi AS\nSELECT\n    d.month_year,\n    d.month_number,\n    m.campaign_id,\n    COUNT(*)                                      AS total_leads,\n    SUM(CASE WHEN m.is_converted = 1 THEN 1 ELSE 0 END) AS converted,\n    ROUND(\n        SUM(CASE WHEN m.is_converted = 1 THEN 1.0 ELSE 0 END)\n        / COUNT(*) * 100, 1\n    )                                             AS conversion_rate_pct,\n    ROUND(AVG(CAST(m.lead_score AS FLOAT)), 1)    AS avg_lead_score,\n    ROUND(SUM(m.estimated_value), 2)              AS total_pipeline_value,\n    ROUND(SUM(\n        CASE WHEN m.is_converted = 1\n             THEN m.estimated_value ELSE 0 END\n    ), 2)                                         AS converted_value\nFROM      salesDW.fact_marketing m\nJOIN      salesDW.dim_date       d\n       ON m.created_date_key = d.date_key\nGROUP BY  d.month_year, d.month_number, m.campaign_id;\nGO\n\n\nCREATE OR ALTER VIEW salesDW.kpi_lead_funnel AS\nSELECT\n    lead_status,\n    lead_quality,\n    COUNT(*)                                      AS total_leads,\n    ROUND(AVG(CAST(lead_score AS FLOAT)), 1)      AS avg_score,\n    ROUND(AVG(estimated_value), 2)                AS avg_deal_value,\n    ROUND(SUM(estimated_value), 2)                AS total_pipeline,\n    ROUND(\n        COUNT(*) * 100.0\n        / SUM(COUNT(*)) OVER (), 1\n    )                                             AS pct_of_total\nFROM salesDW.fact_marketing\nGROUP BY lead_status, lead_quality;\nGO\n\n\n-- ── Quick test ────────────────────────────────────────────────\nSELECT TOP 10 * FROM salesDW.kpi_daily_sales       ORDER BY order_date DESC;\nSELECT TOP 10 * FROM salesDW.kpi_monthly_revenue   ORDER BY year, month_number;\nSELECT TOP 10 * FROM salesDW.kpi_product_performance ORDER BY total_revenue DESC;\nSELECT TOP 10 * FROM salesDW.kpi_daily_leads       ORDER BY activity_date DESC;\nSELECT TOP 10 * FROM salesDW.kpi_monthly_campaign_roi ORDER BY month_number;\nSELECT TOP 10 * FROM salesDW.kpi_lead_funnel       ORDER BY avg_score DESC;\nGO\n\n",
-					"metadata": {
-						"language": "sql"
-					},
-					"currentConnection": {
-						"databaseName": "gold_saleslt",
-						"poolName": "Built-in"
-					},
-					"resultLimit": 5000
-				},
-				"type": "SqlQuery"
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/SQL script 3')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
@@ -1479,6 +1439,46 @@
 					},
 					"currentConnection": {
 						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/create_view')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "USE gold_saleslt;\nGO\n\nCREATE SCHEMA salesDW;\nGO\n\nCREATE OR ALTER VIEW salesDW.dim_customer AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/dim_customer',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.dim_product AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/dim_product',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.dim_date AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/dim_date',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.fact_sales AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/fact_sales',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\nCREATE OR ALTER VIEW salesDW.fact_marketing AS\nSELECT * FROM OPENROWSET(\n    BULK   'https://storageproject12026.dfs.core.windows.net/gold/saleslt/fact_marketing',\n    FORMAT = 'DELTA'\n) AS r;\nGO\n\n-- Verify\nSELECT TABLE_SCHEMA, TABLE_NAME\nFROM   INFORMATION_SCHEMA.TABLES\nWHERE  TABLE_SCHEMA = 'salesDW'\nORDER  BY TABLE_NAME;\nGO",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_saleslt",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/kpi_view')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "USE gold_saleslt;\nGO\n\n-- ── SALES KPI 1 — Daily Sales Summary ────────────────────────\nCREATE OR ALTER VIEW salesDW.kpi_daily_sales AS\nSELECT\n    f.order_date_key                              AS order_date,\n    COUNT(DISTINCT f.sales_order_id)              AS total_orders,\n    SUM(f.order_qty)                              AS total_items_sold,\n    ROUND(SUM(f.line_total), 2)                   AS daily_revenue,\n    ROUND(AVG(f.line_total), 2)                   AS avg_line_value,\n    ROUND(AVG(CAST(f.days_to_ship AS FLOAT)), 1)  AS avg_days_to_ship\nFROM salesDW.fact_sales f\nGROUP BY f.order_date_key;\nGO\n\nCREATE OR ALTER VIEW salesDW.kpi_monthly_revenue AS\nSELECT\n    d.year,\n    d.month_number,\n    d.month_name,\n    d.month_year,\n    d.quarter_label,\n    COUNT(DISTINCT f.sales_order_id)              AS total_orders,\n    SUM(f.order_qty)                              AS total_qty,\n    ROUND(SUM(f.line_total), 2)                   AS monthly_revenue,\n    ROUND(AVG(f.order_total_due), 2)              AS avg_order_value,\n    ROUND(AVG(CAST(f.days_to_ship AS FLOAT)), 1)  AS avg_days_to_ship\nFROM      salesDW.fact_sales f\nJOIN      salesDW.dim_date   d\n       ON f.order_date_key = d.date_key\nGROUP BY  d.year, d.month_number, d.month_name,\n          d.month_year, d.quarter_label;\nGO\n\nCREATE OR ALTER VIEW salesDW.kpi_product_performance AS\nSELECT\n    p.product_name,\n    p.price_range,\n    p.product_status,\n    p.gross_margin                                AS unit_gross_margin,\n    COUNT(DISTINCT f.sales_order_id)              AS total_orders,\n    SUM(f.order_qty)                              AS total_qty_sold,\n    ROUND(SUM(f.line_total), 2)                   AS total_revenue,\n    ROUND(AVG(f.discount_rate) * 100, 2)          AS avg_discount_pct,\n    ROUND(SUM(f.order_qty) * p.gross_margin, 2)   AS est_gross_profit\nFROM      salesDW.fact_sales  f\nJOIN      salesDW.dim_product p\n       ON f.product_key = p.product_key\n      AND p.scd_is_current = 1\nGROUP BY  p.product_name, p.price_range,\n          p.product_status, p.gross_margin;\nGO\n\n\nCREATE OR ALTER VIEW salesDW.kpi_daily_leads AS\nSELECT\n    created_date_key                              AS activity_date,\n    COUNT(*)                                      AS new_leads,\n    ROUND(AVG(CAST(lead_score AS FLOAT)), 1)      AS avg_lead_score,\n    SUM(CASE WHEN is_converted = 1 THEN 1 ELSE 0 END) AS conversions,\n    ROUND(\n        SUM(CASE WHEN is_converted = 1 THEN 1.0 ELSE 0 END)\n        / COUNT(*) * 100, 1\n    )                                             AS conversion_rate_pct,\n    ROUND(SUM(estimated_value), 2)                AS pipeline_value\nFROM salesDW.fact_marketing\nGROUP BY created_date_key;\nGO\n\nCREATE OR ALTER VIEW salesDW.kpi_monthly_campaign_roi AS\nSELECT\n    d.month_year,\n    d.month_number,\n    m.campaign_id,\n    COUNT(*)                                      AS total_leads,\n    SUM(CASE WHEN m.is_converted = 1 THEN 1 ELSE 0 END) AS converted,\n    ROUND(\n        SUM(CASE WHEN m.is_converted = 1 THEN 1.0 ELSE 0 END)\n        / COUNT(*) * 100, 1\n    )                                             AS conversion_rate_pct,\n    ROUND(AVG(CAST(m.lead_score AS FLOAT)), 1)    AS avg_lead_score,\n    ROUND(SUM(m.estimated_value), 2)              AS total_pipeline_value,\n    ROUND(SUM(\n        CASE WHEN m.is_converted = 1\n             THEN m.estimated_value ELSE 0 END\n    ), 2)                                         AS converted_value\nFROM      salesDW.fact_marketing m\nJOIN      salesDW.dim_date       d\n       ON m.created_date_key = d.date_key\nGROUP BY  d.month_year, d.month_number, m.campaign_id;\nGO\n\n\nCREATE OR ALTER VIEW salesDW.kpi_lead_funnel AS\nSELECT\n    lead_status,\n    lead_quality,\n    COUNT(*)                                      AS total_leads,\n    ROUND(AVG(CAST(lead_score AS FLOAT)), 1)      AS avg_score,\n    ROUND(AVG(estimated_value), 2)                AS avg_deal_value,\n    ROUND(SUM(estimated_value), 2)                AS total_pipeline,\n    ROUND(\n        COUNT(*) * 100.0\n        / SUM(COUNT(*)) OVER (), 1\n    )                                             AS pct_of_total\nFROM salesDW.fact_marketing\nGROUP BY lead_status, lead_quality;\nGO\n\n\n-- ── Quick test ────────────────────────────────────────────────\nSELECT TOP 10 * FROM salesDW.kpi_daily_sales       ORDER BY order_date DESC;\nSELECT TOP 10 * FROM salesDW.kpi_monthly_revenue   ORDER BY year, month_number;\nSELECT TOP 10 * FROM salesDW.kpi_product_performance ORDER BY total_revenue DESC;\nSELECT TOP 10 * FROM salesDW.kpi_daily_leads       ORDER BY activity_date DESC;\nSELECT TOP 10 * FROM salesDW.kpi_monthly_campaign_roi ORDER BY month_number;\nSELECT TOP 10 * FROM salesDW.kpi_lead_funnel       ORDER BY avg_score DESC;\nGO\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_saleslt",
 						"poolName": "Built-in"
 					},
 					"resultLimit": 5000
