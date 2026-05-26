@@ -12,6 +12,9 @@ This end-to-end Azure data engineering project was built to provide actionable i
 
 <img width="541" height="261" alt="image" src="https://github.com/user-attachments/assets/ba54faa5-4ae7-4635-87f2-7bec988af104" />
 
+<img width="1860" height="709" alt="image" src="https://github.com/user-attachments/assets/b6f303e2-d894-4e62-8314-bffa0e753e62" />
+
+
 
 
 
