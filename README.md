@@ -6,20 +6,8 @@ This end-to-end Azure data engineering project was built to provide actionable i
 
 ## Architecture — Medallion Pattern
 
-## Repository Structure
+<img width="541" height="261" alt="image" src="https://github.com/user-attachments/assets/ba54faa5-4ae7-4635-87f2-7bec988af104" />
 
-project1/
-├── linkedService/          ← ADF linked services
-│   ├── azuresqlparam.json
-│   ├── azuredatalake.json
-│   ├── azuredatabricks1.json
-│   └── azurekeyvault1.json
-├── dataset/                ← ADF datasets
-├── pipeline/               ← ADF pipelines
-├── databrick_notebook/     ← Databricks notebook references
-└── publish_config.json     ← ADF publish config
-```
-┘
 
 
 
